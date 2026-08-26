@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: ridesync_postgres
+    environment:
+      POSTGRES_USER: ridesync
+      POSTGRES_PASSWORD: ridesync
+      POSTGRES_DB: ridesync
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ridesync"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:7
+    container_name: ridesync_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+
+volumes:
+  pgdata:
+  mongodata:
