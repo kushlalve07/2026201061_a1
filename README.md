@@ -3,8 +3,8 @@
 PostgreSQL + MongoDB design for a global ride-hailing network.
 
 - **Project:** 2 — RideSync
-- **Team number:** _TBD_
-- **GitHub:** _paste repo URL_
+- **Team number:** 1
+- **GitHub:** https://github.com/kushlalve07/2026201061_a1
 - **Final commit hash:** _paste after last push_
 
 ## PostgreSQL setup (Step 1)
