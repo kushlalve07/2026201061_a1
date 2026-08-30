@@ -18,24 +18,45 @@ CREATE USER ridesync WITH PASSWORD 'ridesync';
 CREATE DATABASE ridesync OWNER ridesync;
 ```
 
-Apply the schema, then Step 2 index + materialized view (trigger is not in yet):
+Apply scripts in this order (skip any you already ran):
 
 ```powershell
 $env:PGPASSWORD = "ridesync"
 psql -U ridesync -d ridesync -f sql/01_schema_ddl.sql
 psql -U ridesync -d ridesync -f sql/02_indexes.sql
+psql -U ridesync -d ridesync -f sql/03_triggers_and_audit.sql
+psql -U ridesync -d ridesync -f sql/04_stored_procedures.sql
 psql -U ridesync -d ridesync -f sql/05_materialized_views.sql
 ```
 
-Quick check:
+In SQL Shell, after `ridesync=>`:
 
-```powershell
-psql -U ridesync -d ridesync -c "\dt"
-psql -U ridesync -d ridesync -c "\di idx_active_rider_trip"
-psql -U ridesync -d ridesync -c "SELECT * FROM vehicle_lifetime_stats;"
+```sql
+\i 'C:/Users/Nehal/Desktop/SSD Group Project/sql/04_stored_procedures.sql'
 ```
 
-You should see `riders`, `vehicles`, `trips`, and `wallet_audit_logs`. After trips exist, refresh stats with `SELECT refresh_vehicle_lifetime_stats();`.
+You should see `CREATE PROCEDURE`.
+
+### Workflow 1 — atomic booking
+
+Escrow is a **wallet debit** of `fare_amount` (no extra escrow column). The audit trigger logs the DEBIT. The trip is inserted as `REQUESTED`. If the wallet CHECK fails, both the debit and the trip are rolled back.
+
+```sql
+BEGIN ISOLATION LEVEL REPEATABLE READ;
+CALL sp_atomic_booking('<rider_uuid>', '<vehicle_uuid>', 250.00, NULL);
+COMMIT;
+```
+
+Replace the UUIDs with rows from `SELECT id, name, wallet_balance FROM riders;` and `SELECT id, license_plate FROM vehicles;`.
+
+Quick check:
+
+```sql
+\dt
+\di idx_active_rider_trip
+SELECT * FROM vehicle_lifetime_stats;
+SELECT refresh_vehicle_lifetime_stats();
+```
 
 ERD: [docs/relational_erd.png](docs/relational_erd.png)
 
@@ -46,7 +67,8 @@ ERD: [docs/relational_erd.png](docs/relational_erd.png)
 - `action_type` is constrained to `DEBIT` and `CREDIT`.
 - `fare_amount` cannot be negative.
 - `license_plate` is unique.
-- `wallet_audit_logs` is created in Step 1; the audit trigger is still pending (Step 2 task 1).
+- `wallet_audit_logs` is filled by trigger `rider_wallet_audit` (`sql/03_triggers_and_audit.sql`).
+- Workflow 1 escrow = debit `riders.wallet_balance` by the fare. There is no separate escrow column.
 - Lifetime trip count and total earnings on `vehicle_lifetime_stats` count **COMPLETED** trips only. Requested / in-transit rides are not earnings yet.
 - Partial unique index `idx_active_rider_trip` uses `IN_TRANSIT` to match the CHECK on `trips.status`.
 
