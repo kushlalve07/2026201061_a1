@@ -51,3 +51,5 @@ db.TelemetryPings.createIndex({ location: "2dsphere" });
 
 db.TelemetryPings.createIndex({ created_at: 1 }, { expireAfterSeconds: 7200 });
 
+db.TripReviews.createIndex({ rating: 1 });
+
