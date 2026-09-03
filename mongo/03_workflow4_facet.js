@@ -1,5 +1,10 @@
 db.TripReviews.aggregate([
   {
+    $match: {
+      created_at: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+    }
+  },
+  {
     $facet: {
       "rating_distribution": [
         { 
@@ -10,8 +15,6 @@ db.TripReviews.aggregate([
         },
         { $sort: { _id: 1 } }
       ],
-
-
       "top_feedback_tags": [
         { $unwind: "$tags" },
         { 
@@ -23,7 +26,6 @@ db.TripReviews.aggregate([
         { $sort: { count: -1 } },
         { $limit: 5 }
       ],
-
       "overall_summary": [
         { 
           $group: { 
