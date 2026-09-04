@@ -1,5 +1,3 @@
---Workflow 2: Window Functions, CTEs
-
 WITH daily_revenue AS (
     -- Total Revenue per vehicle, per calendar day.
     SELECT
@@ -20,7 +18,7 @@ moving_avg AS (
             AVG(daily_total) OVER (
                 PARTITION BY vehicle_id
                 ORDER BY revenue_date
-                ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+                RANGE BETWEEN INTERVAL '6 days' PRECEDING AND CURRENT ROW
             ),
         2) AS moving_avg_7day
     FROM daily_revenue

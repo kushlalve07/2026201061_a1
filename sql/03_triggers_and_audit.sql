@@ -1,6 +1,3 @@
--- RideSync (Project 2)
--- Step 3 : Triggers and Audit Logs
-
 CREATE OR REPLACE FUNCTION auditlog()
 RETURNS TRIGGER AS $$
     BEGIN
@@ -24,3 +21,17 @@ AFTER UPDATE OF wallet_balance on riders
 FOR EACH ROW
 WHEN (OLD.wallet_balance IS DISTINCT FROM NEW.wallet_balance)
 EXECUTE FUNCTION auditlog();
+
+CREATE OR REPLACE FUNCTION prevent_audit_mutation()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION
+        'wallet_audit_logs is append-only: % is not permitted', TG_OP
+        USING ERRCODE = 'integrity_constraint_violation';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_wallet_audit_logs_immutable
+BEFORE UPDATE OR DELETE ON wallet_audit_logs
+FOR EACH ROW
+EXECUTE FUNCTION prevent_audit_mutation();

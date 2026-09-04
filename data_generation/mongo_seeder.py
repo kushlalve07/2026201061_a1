@@ -1,15 +1,4 @@
 """
-RideSync Step 4 — MongoDB seeder.
-
-Targets (assignment):
-  - at least 500,000 TelemetryPings (GeoJSON Point)
-
-Also seeds TripReviews (Workflow 4 $facet) and VehicleMetadata.
-
-Pings are clustered around San Francisco so mongo/02_workflow3_geonear.js
-(near [-122.4194, 37.7749], 5 km) finds documents. created_at is within the
-last 90 minutes so the 2-hour TTL index does not delete them immediately.
-
 Usage:
   python data_generation/mongo_seeder.py
   python data_generation/mongo_seeder.py --reset

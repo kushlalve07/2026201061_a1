@@ -1,48 +1,50 @@
                                                                                     QUERY PLAN
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Sort  (cost=17058.08..17180.06 rows=48794 width=132) (actual time=112.378..113.306 rows=29991 loops=1)
+ Sort  (cost=16401.15..16523.14 rows=48797 width=132) (actual time=100.475..101.366 rows=29980 loops=1)
    Sort Key: r.revenue_rank, daily_revenue.vehicle_id, daily_revenue.revenue_date
-   Sort Method: quicksort  Memory: 3111kB
-   Buffers: shared hit=683
+   Sort Method: quicksort  Memory: 3110kB
+   Buffers: shared hit=401
    CTE daily_revenue
-     ->  GroupAggregate  (cost=5232.42..6454.41 rows=48794 width=52) (actual time=29.361..52.157 rows=29991 loops=1)
+     ->  GroupAggregate  (cost=8.56..5797.02 rows=48797 width=52) (actual time=0.200..31.547 rows=29980 loops=1)
            Group Key: trips.vehicle_id, (date(trips.created_at))
-           Buffers: shared hit=667
-           ->  Sort  (cost=5232.42..5354.94 rows=49008 width=26) (actual time=29.329..35.423 rows=49001 loops=1)
-                 Sort Key: trips.vehicle_id, (date(trips.created_at))
-                 Sort Method: quicksort  Memory: 3663kB
-                 Buffers: shared hit=667
-                 ->  Seq Scan on trips  (cost=0.00..1414.52 rows=49008 width=26) (actual time=0.019..11.260 rows=49001 loops=1)
-                       Filter: ((status)::text = 'COMPLETED'::text)
-                       Rows Removed by Filter: 999
-                       Buffers: shared hit=667
-   ->  Hash Join  (cost=1253.28..3464.98 rows=48794 width=132) (actual time=63.156..97.275 rows=29991 loops=1)
+           Buffers: shared hit=397
+           ->  Incremental Sort  (cost=8.56..4697.51 rows=49007 width=26) (actual time=0.191..17.291 rows=49001 loops=1)                 Sort Key: trips.vehicle_id, (date(trips.created_at))
+                 Presorted Key: trips.vehicle_id
+                 Full-sort Groups: 500  Sort Method: quicksort  Average Memory: 28kB  Peak Memory: 28kB
+                 Pre-sorted Groups: 500  Sort Method: quicksort  Average Memory: 30kB  Peak Memory: 30kB
+                 Buffers: shared hit=397
+                 ->  Index Only Scan using idx_trips_completed_vehicle_date on trips  (cost=0.41..2454.04 rows=49007 width=26) (actual time=0.112..8.386 rows=49001 loops=1)
+                       Heap Fetches: 0
+                       Buffers: shared hit=397
+   ->  Hash Join  (cost=1253.36..3465.19 rows=48797 width=132) (actual time=41.432..85.162 rows=29980 loops=1)
          Hash Cond: (r.vehicle_id = v.id)
-         Buffers: shared hit=674
-         ->  Hash Join  (cost=1238.03..3320.55 rows=48794 width=140) (actual time=63.007..92.451 rows=29991 loops=1)
+         Buffers: shared hit=401
+         ->  Hash Join  (cost=1238.11..3320.76 rows=48797 width=140) (actual time=41.262..80.342 rows=29980 loops=1)
                Hash Cond: (daily_revenue.vehicle_id = r.vehicle_id)
-               Buffers: shared hit=670
-               ->  WindowAgg  (cost=0.04..1951.76 rows=48794 width=84) (actual time=29.394..53.113 rows=29991 loops=1)
-                     Buffers: shared hit=667
-                     ->  CTE Scan on daily_revenue  (cost=0.00..975.88 rows=48794 width=52) (actual time=29.364..30.982 rows=29991 loops=1)
-                           Buffers: shared hit=667
-               ->  Hash  (cost=1235.49..1235.49 rows=200 width=56) (actual time=33.594..33.596 rows=500 loops=1)
+               Buffers: shared hit=397
+               ->  WindowAgg  (cost=0.04..1951.88 rows=48797 width=84) (actual time=0.222..33.580 rows=29980 loops=1)
+                     Buffers: shared hit=5
+                     ->  CTE Scan on daily_revenue  (cost=0.00..975.94 rows=48797 width=52) (actual time=0.202..1.751 rows=29980 loops=1)
+                           Buffers: shared hit=5
+               ->  Hash  (cost=1235.57..1235.57 rows=200 width=56) (actual time=41.029..41.032 rows=500 loops=1)
                      Buckets: 1024  Batches: 1  Memory Usage: 44kB
-                     Buffers: shared hit=3
-                     ->  Subquery Scan on r  (cost=1230.01..1235.49 rows=200 width=56) (actual time=33.306..33.537 rows=500 loops=1)                           Buffers: shared hit=3
-                           ->  WindowAgg  (cost=1230.01..1233.49 rows=200 width=56) (actual time=33.305..33.501 rows=500 loops=1)                                 Buffers: shared hit=3
-                                 ->  Sort  (cost=1229.99..1230.49 rows=200 width=48) (actual time=33.297..33.325 rows=500 loops=1)                                       Sort Key: (sum(daily_revenue_1.daily_total)) DESC
+                     Buffers: shared hit=392
+                     ->  Subquery Scan on r  (cost=1230.09..1235.57 rows=200 width=56) (actual time=40.753..40.972 rows=500 loops=1)                           Buffers: shared hit=392
+                           ->  WindowAgg  (cost=1230.09..1233.57 rows=200 width=56) (actual time=40.753..40.936 rows=500 loops=1)                                 Buffers: shared hit=392
+                                 ->  Sort  (cost=1230.07..1230.57 rows=200 width=48) (actual time=40.746..40.769 rows=500 loops=1)                                       Sort Key: (sum(daily_revenue_1.daily_total)) DESC
                                        Sort Method: quicksort  Memory: 48kB
-                                       Buffers: shared hit=3
-                                       ->  GroupAggregate  (cost=0.00..1222.35 rows=200 width=48) (actual time=0.049..33.111 rows=500 loops=1)
+                                       Buffers: shared hit=392
+                                       ->  GroupAggregate  (cost=0.00..1222.43 rows=200 width=48) (actual time=0.137..40.610 rows=500 loops=1)
                                              Group Key: daily_revenue_1.vehicle_id
-                                             ->  CTE Scan on daily_revenue daily_revenue_1  (cost=0.00..975.88 rows=48794 width=48) (actual time=0.000..28.750 rows=29991 loops=1)
-         ->  Hash  (cost=9.00..9.00 rows=500 width=24) (actual time=0.138..0.138 rows=500 loops=1)
+                                             Buffers: shared hit=392
+                                             ->  CTE Scan on daily_revenue daily_revenue_1  (cost=0.00..975.94 rows=48797 width=48) (actual time=0.000..36.733 rows=29980 loops=1)
+                                                   Buffers: shared hit=392
+         ->  Hash  (cost=9.00..9.00 rows=500 width=24) (actual time=0.160..0.160 rows=500 loops=1)
                Buckets: 1024  Batches: 1  Memory Usage: 36kB
                Buffers: shared hit=4
-               ->  Seq Scan on vehicles v  (cost=0.00..9.00 rows=500 width=24) (actual time=0.018..0.073 rows=500 loops=1)                     Buffers: shared hit=4
+               ->  Seq Scan on vehicles v  (cost=0.00..9.00 rows=500 width=24) (actual time=0.017..0.076 rows=500 loops=1)                     Buffers: shared hit=4
  Planning:
-   Buffers: shared hit=219
- Planning Time: 6.281 ms
- Execution Time: 115.585 ms
-(49 rows)
+   Buffers: shared hit=61
+ Planning Time: 4.899 ms
+ Execution Time: 102.829 ms
+(52 rows)

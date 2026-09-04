@@ -1,10 +1,4 @@
 """
-RideSync Step 4 — PostgreSQL seeder.
-
-Targets (assignment):
-  - at least 50,000 trips
-  - at least 100,000 wallet_audit_logs (via the wallet_balance trigger)
-
 Usage:
   python data_generation/postgres_seeder.py
   python data_generation/postgres_seeder.py --reset
