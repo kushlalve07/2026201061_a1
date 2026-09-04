@@ -1,0 +1,66 @@
+{
+  "TelemetryPings": {
+    "bsonType": "object",
+    "required": ["vehicle_id", "location", "is_available", "created_at"],
+    "properties": {
+      "vehicle_id": { "bsonType": "string", "description": "Unique identifier for the vehicle" },
+      "location": {
+        "bsonType": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": { "enum": ["Point"] },
+          "coordinates": {
+            "bsonType": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "bsonType": "double" },
+            "description": "[longitude, latitude]"
+          }
+        }
+      },
+      "is_available": { "bsonType": "bool", "description": "True if ready to accept riders" },
+      "speed_kmh": { "bsonType": "double" },
+      "created_at": { "bsonType": "date" }
+    }
+  },
+  "TripReviews": {
+    "bsonType": "object",
+    "required": ["trip_id", "rider_id", "rating", "tags", "created_at"],
+    "properties": {
+      "trip_id": { "bsonType": "string" },
+      "rider_id": { "bsonType": "string" },
+      "vehicle_id": { "bsonType": "string" },
+      "rating": { "bsonType": "int", "minimum": 1, "maximum": 5 },
+      "tags": {
+        "bsonType": "array",
+        "items": { "bsonType": "string" },
+        "description": "Driver feedback tags e.g. ['Smooth Driving', 'Clean Car', 'Polite']"
+      },
+      "comment": { "bsonType": "string" },
+      "created_at": { "bsonType": "date" }
+    }
+  },
+  "VehicleMetadata": {
+    "bsonType": "object",
+    "required": ["vehicle_id", "inspection_records", "features"],
+    "properties": {
+      "vehicle_id": { "bsonType": "string" },
+      "inspection_records": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "object",
+          "required": ["passed", "inspected_at"],
+          "properties": {
+            "passed": { "bsonType": "bool" },
+            "inspected_at": { "bsonType": "date" },
+            "inspector": { "bsonType": "string" }
+          }
+        }
+      },
+      "features": {
+        "bsonType": "array",
+        "items": { "bsonType": "string" }
+      }
+    }
+  }
+}
