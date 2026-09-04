@@ -1,38 +1,42 @@
 """
-postgres_seeder.py
+RideSync Step 4 — PostgreSQL seeder.
 
-Seeds the RideSync PostgreSQL database with mock data:
-  - 1,000 riders
-  - 500 vehicles
-  - 50,000+ trips (bookings)
-  - 100,000+ wallet_audit_logs (generated automatically via the wallet_balance trigger)
+Targets (assignment):
+  - at least 50,000 trips
+  - at least 100,000 wallet_audit_logs (via the wallet_balance trigger)
+
+Usage:
+  python data_generation/postgres_seeder.py
+  python data_generation/postgres_seeder.py --reset
 """
 
-import random
-import psycopg2
-from psycopg2.extras import execute_values
-from faker import Faker
+from __future__ import annotations
 
-# ---- Config ----
+import argparse
+import os
+import random
+from datetime import timezone
+
+import psycopg2
+from faker import Faker
+from psycopg2.extras import execute_values
+
 DB_CONFIG = {
-    "host": "localhost",
-    "port": 5432,
-    "dbname": "ridesync",
-    "user": "ridesync",
-    "password": "ridesync",
+    "host": os.getenv("PGHOST", "localhost"),
+    "port": int(os.getenv("PGPORT", "5432")),
+    "dbname": os.getenv("PGDATABASE", "ridesync"),
+    "user": os.getenv("PGUSER", "ridesync"),
+    "password": os.getenv("PGPASSWORD", "ridesync"),
 }
 
 NUM_RIDERS = 1_000
 NUM_VEHICLES = 500
-NUM_TRIPS = 100          # comfortably over the 50k requirement
-NUM_WALLET_UPDATES = 100  # comfortably over the 100k requirement (each fires the trigger)
-
+NUM_TRIPS = 50_000
+NUM_WALLET_UPDATES = 100_000
 BATCH_SIZE = 5_000
 SEED = 42
 
 VEHICLE_CLASSES = ["ECONOMY", "PREMIUM", "XL", "POOL"]
-TRIP_STATUSES = ["REQUESTED", "IN_TRANSIT", "COMPLETED"]
-TRIP_STATUS_WEIGHTS = [0.1, 0.1, 0.8]  # mostly completed trips, for realistic revenue data
 
 random.seed(SEED)
 fake = Faker()
@@ -43,52 +47,79 @@ def get_connection():
     return psycopg2.connect(**DB_CONFIG)
 
 
-def seed_riders(conn):
+def reset_tables(conn) -> None:
+    print("Truncating PostgreSQL tables...")
+    with conn.cursor() as cur:
+        cur.execute(
+            "TRUNCATE wallet_audit_logs, trips, riders, vehicles RESTART IDENTITY CASCADE"
+        )
+    conn.commit()
+
+
+def seed_riders(conn) -> list:
     print(f"Seeding {NUM_RIDERS} riders...")
     rows = [
-        (fake.name(), round(random.uniform(50, 5000), 2))
+        (fake.name()[:100], round(random.uniform(200, 5_000), 2))
         for _ in range(NUM_RIDERS)
     ]
     with conn.cursor() as cur:
-        execute_values(
+        returned = execute_values(
             cur,
             "INSERT INTO riders (name, wallet_balance) VALUES %s RETURNING id",
             rows,
+            fetch=True,
         )
-        rider_ids = [r[0] for r in cur.fetchall()]
     conn.commit()
-    return rider_ids
+    return [r[0] for r in returned]
 
 
-def seed_vehicles(conn):
+def seed_vehicles(conn) -> list:
     print(f"Seeding {NUM_VEHICLES} vehicles...")
     rows = [
-        (fake.license_plate(), random.choice(VEHICLE_CLASSES), random.random() > 0.1)
-        for _ in range(NUM_VEHICLES)
+        (f"RS{i:05d}", random.choice(VEHICLE_CLASSES), random.random() > 0.1)
+        for i in range(NUM_VEHICLES)
     ]
     with conn.cursor() as cur:
-        execute_values(
+        returned = execute_values(
             cur,
             "INSERT INTO vehicles (license_plate, class, is_active) VALUES %s RETURNING id",
             rows,
+            fetch=True,
         )
-        vehicle_ids = [r[0] for r in cur.fetchall()]
     conn.commit()
-    return vehicle_ids
+    return [r[0] for r in returned]
 
 
-def seed_trips(conn, rider_ids, vehicle_ids):
+def seed_trips(conn, rider_ids: list, vehicle_ids: list) -> None:
+    """
+    At most one REQUESTED/IN_TRANSIT trip per rider so idx_active_rider_trip holds.
+    Most trips are COMPLETED so Workflow 2 and the materialized view have revenue.
+    """
     print(f"Seeding {NUM_TRIPS} trips...")
+    active_riders: set = set()
+    inserted = 0
+    batch: list = []
+
     with conn.cursor() as cur:
-        inserted = 0
-        batch = []
         for _ in range(NUM_TRIPS):
             rider_id = random.choice(rider_ids)
-            vehicle_id = random.choice(vehicle_ids)
-            fare = round(random.uniform(5, 500), 2)
-            status = random.choices(TRIP_STATUSES, weights=TRIP_STATUS_WEIGHTS)[0]
-            created_at = fake.date_time_between(start_date="-90d", end_date="now")
-            batch.append((rider_id, vehicle_id, fare, status, created_at))
+            if rider_id not in active_riders and random.random() < 0.12:
+                status = random.choice(["REQUESTED", "IN_TRANSIT"])
+                active_riders.add(rider_id)
+            else:
+                status = "COMPLETED"
+
+            batch.append(
+                (
+                    rider_id,
+                    random.choice(vehicle_ids),
+                    round(random.uniform(5, 250), 2),
+                    status,
+                    fake.date_time_between(
+                        start_date="-90d", end_date="now", tzinfo=timezone.utc
+                    ),
+                )
+            )
 
             if len(batch) >= BATCH_SIZE:
                 execute_values(
@@ -98,7 +129,8 @@ def seed_trips(conn, rider_ids, vehicle_ids):
                 )
                 inserted += len(batch)
                 batch = []
-                print(f"  {inserted}/{NUM_TRIPS} trips inserted")
+                conn.commit()
+                print(f"  {inserted}/{NUM_TRIPS} trips")
 
         if batch:
             execute_values(
@@ -107,71 +139,91 @@ def seed_trips(conn, rider_ids, vehicle_ids):
                 batch,
             )
             inserted += len(batch)
-    conn.commit()
-    print(f"  Done. {inserted} trips inserted.")
+            conn.commit()
+
+    print(f"  Done. {inserted} trips (active riders with one open trip: {len(active_riders)})")
 
 
-def _apply_wallet_update_batch(cur, batch):
+def seed_wallet_audit_logs_via_trigger(conn, rider_ids: list) -> None:
     """
-    Bulk UPDATE using a VALUES join -- far faster than executemany(),
-    since it's one round trip instead of one per row.
-    NOTE: rows are applied one at a time by Postgres internally (so the
-    trigger still fires once per row, producing one audit log row per update).
+    Do not INSERT into wallet_audit_logs. Each UPDATE of wallet_balance fires
+    rider_wallet_audit. One unique rider per statement so Postgres applies
+    every row (UPDATE ... FROM with duplicate keys can collapse updates).
     """
-    execute_values(
-        cur,
-        """
-        UPDATE riders AS r
-        SET wallet_balance = GREATEST(r.wallet_balance + v.delta, 0.01)
-        FROM (VALUES %s) AS v(delta, rider_id)
-        WHERE r.id = v.rider_id::uuid
-        """,
-        batch,
-    )
+    print(f"Applying {NUM_WALLET_UPDATES} wallet updates (trigger writes audit rows)...")
+    n_riders = len(rider_ids)
+    rounds, leftover = divmod(NUM_WALLET_UPDATES, n_riders)
+    applied = 0
 
-
-def seed_wallet_audit_logs_via_trigger(conn, rider_ids):
-    """
-    wallet_audit_logs rows are NOT inserted directly -- they're generated
-    automatically by the AFTER UPDATE OF wallet_balance trigger on riders.
-    This proves the trigger works correctly under bulk load.
-    """
-    print(f"Generating {NUM_WALLET_UPDATES} wallet_balance updates (each fires the audit trigger)...")
     with conn.cursor() as cur:
-        updated = 0
-        batch = []
-        for _ in range(NUM_WALLET_UPDATES):
-            rider_id = random.choice(rider_ids)
-            delta = round(random.uniform(-100, 100), 2)
-            batch.append((delta, rider_id))
+        for _ in range(rounds):
+            batch = [
+                (round(random.uniform(-40, 80), 2), rider_id)
+                for rider_id in rider_ids
+            ]
+            execute_values(
+                cur,
+                """
+                UPDATE riders AS r
+                SET wallet_balance = GREATEST(r.wallet_balance + v.delta, 0.01)
+                FROM (VALUES %s) AS v(delta, rider_id)
+                WHERE r.id = v.rider_id::uuid
+                """,
+                batch,
+            )
+            applied += len(batch)
+            conn.commit()
+            print(f"  {applied}/{NUM_WALLET_UPDATES} wallet updates")
 
-            if len(batch) >= BATCH_SIZE:
-                _apply_wallet_update_batch(cur, batch)
-                updated += len(batch)
-                batch = []
-                conn.commit()
-                print(f"  {updated}/{NUM_WALLET_UPDATES} wallet updates applied")
+        if leftover:
+            batch = [
+                (round(random.uniform(-40, 80), 2), rider_id)
+                for rider_id in random.sample(rider_ids, leftover)
+            ]
+            execute_values(
+                cur,
+                """
+                UPDATE riders AS r
+                SET wallet_balance = GREATEST(r.wallet_balance + v.delta, 0.01)
+                FROM (VALUES %s) AS v(delta, rider_id)
+                WHERE r.id = v.rider_id::uuid
+                """,
+                batch,
+            )
+            applied += len(batch)
+            conn.commit()
 
-        if batch:
-            _apply_wallet_update_batch(cur, batch)
-            updated += len(batch)
-    conn.commit()
-    print(f"  Done. {updated} wallet updates applied (each should have logged an audit row).")
+    print(f"  Done. {applied} wallet updates applied.")
 
 
-def main():
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Seed RideSync PostgreSQL data.")
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="TRUNCATE riders/vehicles/trips/audit logs before inserting.",
+    )
+    args = parser.parse_args()
+
     conn = get_connection()
     try:
+        if args.reset:
+            reset_tables(conn)
         rider_ids = seed_riders(conn)
         vehicle_ids = seed_vehicles(conn)
         seed_trips(conn, rider_ids, vehicle_ids)
         seed_wallet_audit_logs_via_trigger(conn, rider_ids)
 
         with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM riders")
+            print(f"\nriders: {cur.fetchone()[0]}")
+            cur.execute("SELECT COUNT(*) FROM vehicles")
+            print(f"vehicles: {cur.fetchone()[0]}")
             cur.execute("SELECT COUNT(*) FROM trips")
-            print(f"\nFinal trips count: {cur.fetchone()[0]}")
+            print(f"trips: {cur.fetchone()[0]}")
             cur.execute("SELECT COUNT(*) FROM wallet_audit_logs")
-            print(f"Final wallet_audit_logs count: {cur.fetchone()[0]}")
+            print(f"wallet_audit_logs: {cur.fetchone()[0]}")
+        print("Refresh the materialized view after this: SELECT refresh_vehicle_lifetime_stats();")
     finally:
         conn.close()
 

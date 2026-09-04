@@ -74,4 +74,47 @@ ERD: [docs/relational_erd.png](docs/relational_erd.png)
 
 ## MongoDB
 
-Not changed in this Step 1 pass. See `mongo/`.
+Collections, `2dsphere` + TTL indexes, and workflows 3–4 live under `mongo/`. Schema map: [docs/mongo_schema_map.json](docs/mongo_schema_map.json).
+
+```powershell
+mongosh ridesync mongo/01_collections_and_indexes.js
+```
+
+Run seeders **before** the geoNear / `$facet` scripts so those pipelines have data.
+
+## Step 4 — data generation
+
+Install Python deps, then seed. Postgres first (Mongo reviews reuse completed trip ids when they exist).
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+python data_generation/postgres_seeder.py --reset
+python data_generation/mongo_seeder.py --reset
+```
+
+Omit `--reset` if the tables/collections are already empty. Expected counts:
+
+- PostgreSQL: ≥ 50,000 `trips`, ≥ 100,000 `wallet_audit_logs`
+- MongoDB: ≥ 500,000 `TelemetryPings`
+
+After Postgres seed, refresh the view:
+
+```sql
+SELECT refresh_vehicle_lifetime_stats();
+```
+
+Then run analytics:
+
+```sql
+\i 'C:/Users/Nehal/Desktop/SSD Group Project/sql/06_window_analytics.sql'
+```
+
+```powershell
+mongosh ridesync mongo/02_workflow3_geonear.js
+mongosh ridesync mongo/03_workflow4_facet.js
+```
+
+500k Mongo inserts take several minutes. Telemetry `created_at` is within the last 90 minutes so the 2-hour TTL index does not wipe the pings before you capture `explain`.
