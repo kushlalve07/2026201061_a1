@@ -1,7 +1,3 @@
--- RideSync (Project 2) — Step 2: vehicle lifetime stats
--- Materialized view of each vehicle's completed-trip count and earnings.
--- REFRESH CONCURRENTLY needs a unique index on the view.
---
 --   psql -U ridesync -d ridesync -f sql/05_materialized_views.sql
 --   SELECT refresh_vehicle_lifetime_stats();
 

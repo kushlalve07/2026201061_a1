@@ -1,11 +1,3 @@
--- RideSync (Project 2) — PostgreSQL schema
--- Step 1: tables, types, PKs/FKs, CHECK constraints
---
--- Apply after creating the database (see README.md):
---   psql -U ridesync -d ridesync -f sql/01_schema_ddl.sql
---
--- Requires PostgreSQL 13+ (gen_random_uuid() is built-in; no uuid-ossp).
-
 CREATE TABLE riders (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name            VARCHAR(100) NOT NULL,

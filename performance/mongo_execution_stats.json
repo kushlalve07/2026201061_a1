@@ -1,0 +1,680 @@
+{
+  "Workflow_3_GeoNear": {
+    "explainVersion": "1",
+    "stages": [
+      {
+        "$geoNearCursor": {
+          "queryPlanner": {
+            "namespace": "ridesync.TelemetryPings",
+            "indexFilterSet": false,
+            "parsedQuery": {
+              "$and": [
+                {
+                  "is_available": {
+                    "$eq": true
+                  }
+                },
+                {
+                  "location": {
+                    "$nearSphere": {
+                      "type": "Point",
+                      "coordinates": [
+                        -122.4194,
+                        37.7749
+                      ]
+                    },
+                    "$maxDistance": 5000.0
+                  }
+                }
+              ]
+            },
+            "queryHash": "E23DA3A8",
+            "planCacheKey": "9B44708C",
+            "optimizationTimeMillis": 19,
+            "maxIndexedOrSolutionsReached": false,
+            "maxIndexedAndSolutionsReached": false,
+            "maxScansToExplodeReached": false,
+            "winningPlan": {
+              "stage": "FETCH",
+              "filter": {
+                "is_available": {
+                  "$eq": true
+                }
+              },
+              "inputStage": {
+                "stage": "GEO_NEAR_2DSPHERE",
+                "keyPattern": {
+                  "location": "2dsphere"
+                },
+                "indexName": "location_2dsphere",
+                "indexVersion": 2,
+                "inputStage": {
+                  "stage": "FETCH",
+                  "inputStage": {
+                    "stage": "IXSCAN",
+                    "keyPattern": {
+                      "location": "2dsphere"
+                    },
+                    "indexName": "location_2dsphere",
+                    "isMultiKey": false,
+                    "multiKeyPaths": {
+                      "location": []
+                    },
+                    "isUnique": false,
+                    "isSparse": false,
+                    "isPartial": false,
+                    "indexVersion": 2,
+                    "direction": "forward",
+                    "indexBounds": {
+                      "location": [
+                        "[-9186217339928969216, -9186217339928969216]",
+                        "[-9185935864952258560, -9185935864952258560]",
+                        "[-9185795127463903231, -9185794990024949761]",
+                        "[-9185794921305473024, -9185794921305473024]",
+                        "[-9185794869765865472, -9185794869765865472]",
+                        "[-9185794861175930879, -9185794852585996289]",
+                        "[-9185794852585996288, -9185794852585996288]",
+                        "[-9185794852585996287, -9185794715147042817]",
+                        "[-9185794715147042815, -9185794577708089345]",
+                        "[-9185794577708089343, -9185794027952275457]",
+                        "[-9185794027952275456, -9185794027952275456]",
+                        "[-9185794027952275455, -9185793890513321985]",
+                        "[-9185793890513321983, -9185793753074368513]",
+                        "[-9185793753074368512, -9185793753074368512]",
+                        "[-9185793297807835135, -9185793289217900545]",
+                        "[-9185793289217900544, -9185793289217900544]",
+                        "[-9185793272038031360, -9185793272038031360]",
+                        "[-9185793203318554624, -9185793203318554624]",
+                        "[-9185790729417392128, -9185790729417392128]",
+                        "[-9185787705760415744, -9185787705760415744]",
+                        "[-9185787705760415743, -9185787568321462273]",
+                        "[-9185787568321462271, -9185787566173978625]",
+                        "[-9185787564026494976, -9185787564026494976]",
+                        "[-9185787551141593088, -9185787551141593088]",
+                        "[-9185787499601985536, -9185787499601985536]",
+                        "[-9185787430882508800, -9185787430882508800]",
+                        "[-9185787430882508799, -9185786881126694913]",
+                        "[-9185777535277858816, -9185777535277858816]",
+                        "[-9185724758719725568, -9185724758719725568]",
+                        "[-9183965540115283968, -9183965540115283968]",
+                        "[-9183121115185152000, -9183121115185152000]",
+                        "[-9183050746440974336, -9183050746440974336]",
+                        "[-9182997969882841088, -9182997969882841088]",
+                        "[-9182984775743307776, -9182984775743307776]",
+                        "[-9182983676231680000, -9182983676231680000]",
+                        "[-9182983083526193151, -9182983074936258561]",
+                        "[-9182983074936258560, -9182983074936258560]",
+                        "[-9182983057756389376, -9182983057756389376]",
+                        "[-9182982851597959168, -9182982851597959168]",
+                        "[-9182982782878482432, -9182982782878482432]",
+                        "[-9182982748518744063, -9182982714159005697]",
+                        "[-9182982714159005695, -9182982576720052225]",
+                        "[-9182982576720052223, -9182982026964238337]",
+                        "[-9182981992604499967, -9182981958244761601]",
+                        "[-9182981958244761600, -9182981958244761600]",
+                        "[-9182981752086331392, -9182981752086331392]",
+                        "[-9182981614647377919, -9182981477208424449]",
+                        "[-9182981477208424448, -9182981477208424448]",
+                        "[-9182981477208424447, -9182981339769470977]",
+                        "[-9182981202330517504, -9182981202330517504]",
+                        "[-9182980996172087296, -9182980996172087296]",
+                        "[-9182980978992218112, -9182980978992218112]",
+                        "[-9182980978992218111, -9182980970402283521]",
+                        "[-9182980927452610559, -9182980377696796673]",
+                        "[-9182839640208441344, -9182839640208441344]",
+                        "[-9169328841326329856, -9169328841326329856]",
+                        "[-9151314442816847872, -9151314442816847872]"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "rejectedPlans": []
+          },
+          "executionStats": {
+            "executionSuccess": true,
+            "nReturned": 0,
+            "executionTimeMillis": 197,
+            "totalKeysExamined": 0,
+            "totalDocsExamined": 0,
+            "executionStages": {
+              "stage": "FETCH",
+              "filter": {
+                "is_available": {
+                  "$eq": true
+                }
+              },
+              "nReturned": 0,
+              "executionTimeMillisEstimate": 154,
+              "works": 18,
+              "advanced": 0,
+              "needTime": 17,
+              "needYield": 0,
+              "saveState": 3,
+              "restoreState": 3,
+              "isEOF": 1,
+              "docsExamined": 0,
+              "alreadyHasObj": 0,
+              "inputStage": {
+                "stage": "GEO_NEAR_2DSPHERE",
+                "nReturned": 0,
+                "executionTimeMillisEstimate": 154,
+                "works": 18,
+                "advanced": 0,
+                "needTime": 17,
+                "needYield": 0,
+                "saveState": 3,
+                "restoreState": 3,
+                "isEOF": 1,
+                "keyPattern": {
+                  "location": "2dsphere"
+                },
+                "indexName": "location_2dsphere",
+                "indexVersion": 2,
+                "searchIntervals": [
+                  {
+                    "minDistance": 0.0,
+                    "maxDistance": 5000.0,
+                    "maxInclusive": true,
+                    "nBuffered": 0,
+                    "nReturned": 0
+                  }
+                ],
+                "inputStage": {
+                  "stage": "FETCH",
+                  "nReturned": 0,
+                  "executionTimeMillisEstimate": 0,
+                  "works": 1,
+                  "advanced": 0,
+                  "needTime": 0,
+                  "needYield": 0,
+                  "saveState": 0,
+                  "restoreState": 0,
+                  "isEOF": 1,
+                  "docsExamined": 0,
+                  "alreadyHasObj": 0,
+                  "inputStage": {
+                    "stage": "IXSCAN",
+                    "nReturned": 0,
+                    "executionTimeMillisEstimate": 0,
+                    "works": 1,
+                    "advanced": 0,
+                    "needTime": 0,
+                    "needYield": 0,
+                    "saveState": 0,
+                    "restoreState": 0,
+                    "isEOF": 1,
+                    "keyPattern": {
+                      "location": "2dsphere"
+                    },
+                    "indexName": "location_2dsphere",
+                    "isMultiKey": false,
+                    "multiKeyPaths": {
+                      "location": []
+                    },
+                    "isUnique": false,
+                    "isSparse": false,
+                    "isPartial": false,
+                    "indexVersion": 2,
+                    "direction": "forward",
+                    "indexBounds": {
+                      "location": [
+                        "[-9186217339928969216, -9186217339928969216]",
+                        "[-9185935864952258560, -9185935864952258560]",
+                        "[-9185795127463903231, -9185794990024949761]",
+                        "[-9185794921305473024, -9185794921305473024]",
+                        "[-9185794869765865472, -9185794869765865472]",
+                        "[-9185794861175930879, -9185794852585996289]",
+                        "[-9185794852585996288, -9185794852585996288]",
+                        "[-9185794852585996287, -9185794715147042817]",
+                        "[-9185794715147042815, -9185794577708089345]",
+                        "[-9185794577708089343, -9185794027952275457]",
+                        "[-9185794027952275456, -9185794027952275456]",
+                        "[-9185794027952275455, -9185793890513321985]",
+                        "[-9185793890513321983, -9185793753074368513]",
+                        "[-9185793753074368512, -9185793753074368512]",
+                        "[-9185793297807835135, -9185793289217900545]",
+                        "[-9185793289217900544, -9185793289217900544]",
+                        "[-9185793272038031360, -9185793272038031360]",
+                        "[-9185793203318554624, -9185793203318554624]",
+                        "[-9185790729417392128, -9185790729417392128]",
+                        "[-9185787705760415744, -9185787705760415744]",
+                        "[-9185787705760415743, -9185787568321462273]",
+                        "[-9185787568321462271, -9185787566173978625]",
+                        "[-9185787564026494976, -9185787564026494976]",
+                        "[-9185787551141593088, -9185787551141593088]",
+                        "[-9185787499601985536, -9185787499601985536]",
+                        "[-9185787430882508800, -9185787430882508800]",
+                        "[-9185787430882508799, -9185786881126694913]",
+                        "[-9185777535277858816, -9185777535277858816]",
+                        "[-9185724758719725568, -9185724758719725568]",
+                        "[-9183965540115283968, -9183965540115283968]",
+                        "[-9183121115185152000, -9183121115185152000]",
+                        "[-9183050746440974336, -9183050746440974336]",
+                        "[-9182997969882841088, -9182997969882841088]",
+                        "[-9182984775743307776, -9182984775743307776]",
+                        "[-9182983676231680000, -9182983676231680000]",
+                        "[-9182983083526193151, -9182983074936258561]",
+                        "[-9182983074936258560, -9182983074936258560]",
+                        "[-9182983057756389376, -9182983057756389376]",
+                        "[-9182982851597959168, -9182982851597959168]",
+                        "[-9182982782878482432, -9182982782878482432]",
+                        "[-9182982748518744063, -9182982714159005697]",
+                        "[-9182982714159005695, -9182982576720052225]",
+                        "[-9182982576720052223, -9182982026964238337]",
+                        "[-9182981992604499967, -9182981958244761601]",
+                        "[-9182981958244761600, -9182981958244761600]",
+                        "[-9182981752086331392, -9182981752086331392]",
+                        "[-9182981614647377919, -9182981477208424449]",
+                        "[-9182981477208424448, -9182981477208424448]",
+                        "[-9182981477208424447, -9182981339769470977]",
+                        "[-9182981202330517504, -9182981202330517504]",
+                        "[-9182980996172087296, -9182980996172087296]",
+                        "[-9182980978992218112, -9182980978992218112]",
+                        "[-9182980978992218111, -9182980970402283521]",
+                        "[-9182980927452610559, -9182980377696796673]",
+                        "[-9182839640208441344, -9182839640208441344]",
+                        "[-9169328841326329856, -9169328841326329856]",
+                        "[-9151314442816847872, -9151314442816847872]"
+                      ]
+                    },
+                    "keysExamined": 0,
+                    "seeks": 1,
+                    "dupsTested": 0,
+                    "dupsDropped": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "nReturned": 0,
+        "executionTimeMillisEstimate": 156
+      },
+      {
+        "$limit": 1,
+        "nReturned": 0,
+        "executionTimeMillisEstimate": 156
+      }
+    ],
+    "serverInfo": {
+      "host": "vivek-Inspiron-3593",
+      "port": 27017,
+      "version": "7.0.40",
+      "gitVersion": "37741b538c02da076d1e34d66113ac0230d4523a"
+    },
+    "serverParameters": {
+      "internalQueryFacetBufferSizeBytes": 104857600,
+      "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+      "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+      "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+      "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+      "internalQueryProhibitBlockingMergeOnMongoS": 0,
+      "internalQueryMaxAddToSetBytes": 104857600,
+      "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+      "internalQueryFrameworkControl": "forceClassicEngine"
+    },
+    "command": {
+      "aggregate": "TelemetryPings",
+      "pipeline": [
+        {
+          "$geoNear": {
+            "near": {
+              "type": "Point",
+              "coordinates": [
+                -122.4194,
+                37.7749
+              ]
+            },
+            "distanceField": "distance_meters",
+            "maxDistance": 5000,
+            "query": {
+              "is_available": true
+            },
+            "spherical": true
+          }
+        },
+        {
+          "$limit": 1
+        }
+      ],
+      "cursor": {},
+      "$db": "ridesync"
+    },
+    "ok": 1.0
+  },
+  "Workflow_4_Facet": {
+    "explainVersion": "1",
+    "stages": [
+      {
+        "$cursor": {
+          "queryPlanner": {
+            "namespace": "ridesync.TripReviews",
+            "indexFilterSet": false,
+            "parsedQuery": {
+              "rating": {
+                "$gte": 1
+              }
+            },
+            "queryHash": "9D15F450",
+            "planCacheKey": "DA0BF678",
+            "optimizationTimeMillis": 2,
+            "maxIndexedOrSolutionsReached": false,
+            "maxIndexedAndSolutionsReached": false,
+            "maxScansToExplodeReached": false,
+            "winningPlan": {
+              "stage": "PROJECTION_SIMPLE",
+              "transformBy": {
+                "rating": 1,
+                "tags": 1,
+                "_id": 0
+              },
+              "inputStage": {
+                "stage": "FETCH",
+                "inputStage": {
+                  "stage": "IXSCAN",
+                  "keyPattern": {
+                    "rating": 1
+                  },
+                  "indexName": "rating_1",
+                  "isMultiKey": false,
+                  "multiKeyPaths": {
+                    "rating": []
+                  },
+                  "isUnique": false,
+                  "isSparse": false,
+                  "isPartial": false,
+                  "indexVersion": 2,
+                  "direction": "forward",
+                  "indexBounds": {
+                    "rating": [
+                      "[1, inf.0]"
+                    ]
+                  }
+                }
+              }
+            },
+            "rejectedPlans": []
+          },
+          "executionStats": {
+            "executionSuccess": true,
+            "nReturned": 35000,
+            "executionTimeMillis": 1026,
+            "totalKeysExamined": 35000,
+            "totalDocsExamined": 35000,
+            "executionStages": {
+              "stage": "PROJECTION_SIMPLE",
+              "nReturned": 35000,
+              "executionTimeMillisEstimate": 500,
+              "works": 35001,
+              "advanced": 35000,
+              "needTime": 0,
+              "needYield": 0,
+              "saveState": 51,
+              "restoreState": 51,
+              "isEOF": 1,
+              "transformBy": {
+                "rating": 1,
+                "tags": 1,
+                "_id": 0
+              },
+              "inputStage": {
+                "stage": "FETCH",
+                "nReturned": 35000,
+                "executionTimeMillisEstimate": 500,
+                "works": 35001,
+                "advanced": 35000,
+                "needTime": 0,
+                "needYield": 0,
+                "saveState": 51,
+                "restoreState": 51,
+                "isEOF": 1,
+                "docsExamined": 35000,
+                "alreadyHasObj": 0,
+                "inputStage": {
+                  "stage": "IXSCAN",
+                  "nReturned": 35000,
+                  "executionTimeMillisEstimate": 228,
+                  "works": 35001,
+                  "advanced": 35000,
+                  "needTime": 0,
+                  "needYield": 0,
+                  "saveState": 51,
+                  "restoreState": 51,
+                  "isEOF": 1,
+                  "keyPattern": {
+                    "rating": 1
+                  },
+                  "indexName": "rating_1",
+                  "isMultiKey": false,
+                  "multiKeyPaths": {
+                    "rating": []
+                  },
+                  "isUnique": false,
+                  "isSparse": false,
+                  "isPartial": false,
+                  "indexVersion": 2,
+                  "direction": "forward",
+                  "indexBounds": {
+                    "rating": [
+                      "[1, inf.0]"
+                    ]
+                  },
+                  "keysExamined": 35000,
+                  "seeks": 1,
+                  "dupsTested": 0,
+                  "dupsDropped": 0
+                }
+              }
+            }
+          }
+        },
+        "nReturned": 35000,
+        "executionTimeMillisEstimate": 637
+      },
+      {
+        "$facet": {
+          "rating_distribution": [
+            {
+              "$internalFacetTeeConsumer": {},
+              "nReturned": 35000,
+              "executionTimeMillisEstimate": 648
+            },
+            {
+              "$group": {
+                "_id": "$rating",
+                "count": {
+                  "$sum": {
+                    "$const": 1
+                  }
+                }
+              },
+              "maxAccumulatorMemoryUsageBytes": {
+                "count": 480
+              },
+              "totalOutputDataSizeBytes": 1225,
+              "usedDisk": false,
+              "spills": 0,
+              "spilledDataStorageSize": 0,
+              "numBytesSpilledEstimate": 0,
+              "spilledRecords": 0,
+              "nReturned": 5,
+              "executionTimeMillisEstimate": 718
+            },
+            {
+              "$sort": {
+                "sortKey": {
+                  "_id": 1
+                }
+              },
+              "totalDataSizeSortedBytesEstimate": 1265,
+              "usedDisk": false,
+              "spills": 0,
+              "spilledDataStorageSize": 0,
+              "nReturned": 5,
+              "executionTimeMillisEstimate": 724
+            }
+          ],
+          "driver_feedback_tags": [
+            {
+              "$internalFacetTeeConsumer": {},
+              "nReturned": 35000,
+              "executionTimeMillisEstimate": 0
+            },
+            {
+              "$unwind": {
+                "path": "$tags"
+              },
+              "nReturned": 70066,
+              "executionTimeMillisEstimate": 190
+            },
+            {
+              "$group": {
+                "_id": "$tags",
+                "count": {
+                  "$sum": {
+                    "$const": 1
+                  }
+                }
+              },
+              "maxAccumulatorMemoryUsageBytes": {
+                "count": 1344
+              },
+              "totalOutputDataSizeBytes": 3548,
+              "usedDisk": false,
+              "spills": 0,
+              "spilledDataStorageSize": 0,
+              "numBytesSpilledEstimate": 0,
+              "spilledRecords": 0,
+              "nReturned": 14,
+              "executionTimeMillisEstimate": 190
+            },
+            {
+              "$sort": {
+                "sortKey": {
+                  "count": -1
+                }
+              },
+              "totalDataSizeSortedBytesEstimate": 3660,
+              "usedDisk": false,
+              "spills": 0,
+              "spilledDataStorageSize": 0,
+              "nReturned": 14,
+              "executionTimeMillisEstimate": 190
+            }
+          ],
+          "overall_average": [
+            {
+              "$internalFacetTeeConsumer": {},
+              "nReturned": 35000,
+              "executionTimeMillisEstimate": 100
+            },
+            {
+              "$group": {
+                "_id": {
+                  "$const": null
+                },
+                "avg_rating": {
+                  "$avg": "$rating"
+                }
+              },
+              "maxAccumulatorMemoryUsageBytes": {
+                "avg_rating": 104
+              },
+              "totalOutputDataSizeBytes": 245,
+              "usedDisk": false,
+              "spills": 0,
+              "spilledDataStorageSize": 0,
+              "numBytesSpilledEstimate": 0,
+              "spilledRecords": 0,
+              "nReturned": 1,
+              "executionTimeMillisEstimate": 102
+            }
+          ]
+        },
+        "nReturned": 1,
+        "executionTimeMillisEstimate": 1016
+      }
+    ],
+    "serverInfo": {
+      "host": "vivek-Inspiron-3593",
+      "port": 27017,
+      "version": "7.0.40",
+      "gitVersion": "37741b538c02da076d1e34d66113ac0230d4523a"
+    },
+    "serverParameters": {
+      "internalQueryFacetBufferSizeBytes": 104857600,
+      "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+      "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+      "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+      "internalQueryMaxBlockingSortMemoryUsageBytes": 104857600,
+      "internalQueryProhibitBlockingMergeOnMongoS": 0,
+      "internalQueryMaxAddToSetBytes": 104857600,
+      "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+      "internalQueryFrameworkControl": "forceClassicEngine"
+    },
+    "command": {
+      "aggregate": "TripReviews",
+      "pipeline": [
+        {
+          "$match": {
+            "rating": {
+              "$gte": 1
+            }
+          }
+        },
+        {
+          "$facet": {
+            "rating_distribution": [
+              {
+                "$group": {
+                  "_id": "$rating",
+                  "count": {
+                    "$sum": 1
+                  }
+                }
+              },
+              {
+                "$sort": {
+                  "_id": 1
+                }
+              }
+            ],
+            "driver_feedback_tags": [
+              {
+                "$unwind": "$tags"
+              },
+              {
+                "$group": {
+                  "_id": "$tags",
+                  "count": {
+                    "$sum": 1
+                  }
+                }
+              },
+              {
+                "$sort": {
+                  "count": -1
+                }
+              }
+            ],
+            "overall_average": [
+              {
+                "$group": {
+                  "_id": null,
+                  "avg_rating": {
+                    "$avg": "$rating"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "cursor": {},
+      "$db": "ridesync"
+    },
+    "ok": 1.0
+  }
+}
